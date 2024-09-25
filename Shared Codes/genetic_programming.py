@@ -23,6 +23,7 @@ from sklearn.utils import compute_sample_weight
 from sklearn.utils.validation import check_X_y, check_array
 from sklearn.utils.multiclass import check_classification_targets
 from time import time 
+import random
 
 
 
@@ -408,7 +409,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
             if isinstance(self.transformer, _Function):
                 self._transformer = self.transformer
             elif self.transformer == 'sigmoid':
-                self._transformer = sigmoid
+                self._transformer = _sigmoid
             else:
                 raise ValueError('Invalid `transformer`. Expected either '
                                  '"sigmoid" or _Function object, got %s' %
@@ -1686,6 +1687,10 @@ class _Program(object):
             method = self.init_method
         max_depth = random_state.randint(*self.init_depth)
 
+        # Select a random subset of features for this program
+        num_selected_features = random_state.randint(1, self.n_features + 1)  # at least 1 feature
+        selected_features = random_state.choice(self.n_features, num_selected_features, replace=False)
+
         # Start a program with a function to avoid degenerative programs
         function = random_state.randint(len(self.function_set))
         function = self.function_set[function]
@@ -1708,7 +1713,8 @@ class _Program(object):
                 if self.const_range is not None:
                     terminal = random_state.randint(self.n_features + 1)
                 else:
-                    terminal = random_state.randint(self.n_features)
+                    # terminal = random_state.randint(self.n_features)
+                    terminal = int(random_state.choice(selected_features))
                 if terminal == self.n_features:
                     terminal = random_state.uniform(*self.const_range)
                     if self.const_range is None:
