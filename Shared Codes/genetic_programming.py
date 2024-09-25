@@ -24,6 +24,7 @@ from sklearn.utils.validation import check_X_y, check_array
 from sklearn.utils.multiclass import check_classification_targets
 from time import time 
 import random
+import graphviz
 
 
 
@@ -486,6 +487,13 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                                           params)
                 for i in range(n_jobs))
 
+            for i in range(len(population[0])):
+                dot_data = population[0][i].export_graphviz()
+                graph = graphviz.Source(dot_data)
+
+                graph.render(f'images/debug/gen{gen}_prog{i}', format='png', cleanup=True)
+                graph
+            
             # Reduce, maintaining order across different n_jobs
             population = list(itertools.chain.from_iterable(population))
 
