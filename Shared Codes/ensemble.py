@@ -29,6 +29,20 @@ import gc
 import os
 import re 
 
+from genetic_programming import SymbolicRegressor,SymbolicClassifier
+
+def genetic_programming():
+    return SymbolicRegressor(population_size=50,
+            generations=5, stopping_criteria=1.2,
+            p_crossover=0.7, p_subtree_mutation=0.1,
+            p_hoist_mutation=0.05, p_point_mutation=0.1,
+            max_samples=0.7, verbose=0,
+            parsimony_coefficient=1e-4, random_state=42,
+            function_set=['avg2', 'avg3', 'avg5','median3', 'median5', 'maximum2', 'maximum3', 'maximum5'],
+            metric='f1-score',
+            n_jobs=-1
+            )
+    
 code_path = '/content/drive/My Drive/Colab Notebooks/Muawiya/Genetic Programming Combiner with DFS/codes/Shared Codes'
 sys.path.insert(0,code_path)
 from oselm import OSELMClassifier,set_use_know
@@ -85,8 +99,9 @@ class Ensemble:
         self.program_history = []
         self.fitted = False
         self.scores = {}
-        self.maximum_number_of_classifer = 4
+        self.maximum_number_of_classifer = 8
         self.apply_model_replacement = apply_model_replacement
+        self.VL_GP = False
 
     def get_scores(self):
       return self.scores
@@ -143,7 +158,17 @@ class Ensemble:
         # change the fit flag to True.
         self.fitted = True
         profiles = np.array([self.classifiers[i].predict_proba(X) for i in range(len(self.classifiers))])
+        #delete self.program here
+        self.program = genetic_programming()
+        self.program.VL_GP = self.VL_GP
+        self.program.random_state = self.random_state
         self.program.fit(profiles, y)
+        # for i in range(len(program[0])):
+        #   dot_data = population[0][i].export_graphviz()
+        #   graph = graphviz.Source(dot_data)
+
+        #   graph.render(f'images/debug/gen{gen}_prog{i}', format='png', cleanup=True)
+        #   graph
         self.program_history.append(self.program)
 
 
